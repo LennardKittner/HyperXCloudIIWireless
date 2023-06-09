@@ -1,0 +1,10 @@
+[package]
+name = "hyper_x_cloud_ii_wireless"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hidapi = "2.3.3"
+thiserror = "1.0.40"
