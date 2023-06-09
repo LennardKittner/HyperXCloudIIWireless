@@ -40,7 +40,7 @@ fn main() {
             }
         };
         handle.update(|tray: &mut BatteryTray| {
-            tray.refresh(battery_level, charging);
+            tray.update(battery_level, charging);
         });
     }
 }

@@ -1,4 +1,4 @@
-use ksni::{Tray, MenuItem, menu::{StandardItem}};
+use ksni::{Tray, MenuItem, menu::{StandardItem}, ToolTip};
 
 #[derive(Debug)]
 pub struct BatteryTray {
@@ -14,7 +14,7 @@ impl BatteryTray {
         }
     }
 
-    pub fn refresh(&mut self, battery_level: u8, charging: bool) {
+    pub fn update(&mut self, battery_level: u8, charging: bool) {
         self.battery_level = battery_level;
         self.charging = charging;
     }
@@ -23,13 +23,6 @@ impl BatteryTray {
 impl Tray for BatteryTray {
     fn icon_name(&self) -> String {
         "headset".into()
-    }
-    fn title(&self) -> String {
-        if self.charging {
-            format!("Battery level: {}%\nCharging", self.battery_level).to_string()
-        } else {
-            format!("Battery level: {}%\nNot charging", self.battery_level).to_string()
-        }
     }
     fn menu(&self) -> Vec<MenuItem<Self>> {
         vec![
@@ -41,5 +34,18 @@ impl Tray for BatteryTray {
             }
             .into(),
         ]
+    }
+    fn tool_tip(&self) -> ToolTip {
+        let description = if self.charging {
+            format!("Battery level: {}%\nCharging", self.battery_level)
+        } else {
+            format!("Battery level: {}%\nNot charging", self.battery_level)
+        };
+        ToolTip {
+            title: "HyperX Cloud II".to_string(),
+            description: description,
+            icon_name: "".into(),
+            icon_pixmap: Vec::new(),
+        }
     }
 }
