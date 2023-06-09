@@ -16,4 +16,9 @@ fn main() {
         }
     };
     println!("Battery level: {}%", battery_level);
+    if charging {
+        println!("Charging");
+    } else {
+        println!("Not charging");
+    }
 }
