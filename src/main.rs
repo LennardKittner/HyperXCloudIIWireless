@@ -36,7 +36,12 @@ fn main() {
                 continue;
             }
             Err(DeviceError::NoDeviceFound()) => {
-                eprintln!("Error: {}", DeviceError::NoDeviceFound());
+                eprintln!("{}", DeviceError::NoDeviceFound());
+                handle.update(|tray: &mut BatteryTray| { tray.no_device_found(); });
+                continue;
+            }
+            Err(DeviceError::HeadSetOff()) => {
+                eprintln!("{}", DeviceError::HeadSetOff());
                 handle.update(|tray: &mut BatteryTray| { tray.no_device_found(); });
                 continue;
             }
