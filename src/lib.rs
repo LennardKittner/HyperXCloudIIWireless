@@ -26,8 +26,8 @@ pub enum DeviceError {
     NoDeviceFound(),
     #[error("Error: No response. Is the headset turned on?")]
     HeadSetOff(),
-    #[error("Error: Unknown response.")]
-    UnknownResponse(),
+    #[error("Error: Unknown response: {0:?}")]
+    UnknownResponse([u8; 8]),
 }
    
 pub struct Device {
@@ -50,17 +50,17 @@ impl Device {
     pub fn get_battery_level(&self) -> Result<(u8, bool), DeviceError> {
         self.hid_device.write(&BATTERY_PACKET)?;
         let mut buf = [0u8; 8];
-        let res = self.hid_device.read_timeout(&mut buf[..], 1000)?;
+        let res = self.hid_device.read_timeout(&mut buf[..], 800)?;
         if res == 0 {
             return Err(DeviceError::HeadSetOff());
         }
         if !buf.starts_with(&PREAMBLE) {
-            return Err(DeviceError::UnknownResponse());
+            return Err(DeviceError::UnknownResponse(buf));
         }
         let charging = match buf[CHARGING_INDEX] {
             CHARGING_STATE => true,
             NOT_CHARGING_STATE => false,
-            _ => return Err(DeviceError::UnknownResponse()),
+            _ => return Err(DeviceError::UnknownResponse(buf)),
         };
         Ok((buf[BATTERY_LEVEL_INDEX], charging))
     }

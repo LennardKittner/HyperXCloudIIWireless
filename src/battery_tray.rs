@@ -4,19 +4,26 @@ use ksni::{Tray, MenuItem, menu::{StandardItem}, ToolTip};
 pub struct BatteryTray {
     battery_level: u8,
     charging: bool,
+    device_found: bool,
 }
 
 impl BatteryTray {
-    pub fn new(battery_level: u8, charging: bool) -> Self {
+    pub fn new() -> Self {
         BatteryTray {
-            battery_level,
-            charging,
+            battery_level: 0,
+            charging: false,
+            device_found: false,
         }
     }
 
     pub fn update(&mut self, battery_level: u8, charging: bool) {
+        self.device_found = true;
         self.battery_level = battery_level;
         self.charging = charging;
+    }
+
+    pub fn no_device_found(&mut self) {
+        self.device_found = false;
     }
 }
 
@@ -36,11 +43,14 @@ impl Tray for BatteryTray {
         ]
     }
     fn tool_tip(&self) -> ToolTip {
-        let description = if self.charging {
-            format!("Battery level: {}%\nCharging", self.battery_level)
-        } else {
-            format!("Battery level: {}%\nNot charging", self.battery_level)
-        };
+        let description = 
+            if !self.device_found {
+                "No device found".to_string()
+            } else if self.charging {
+                format!("Battery level: {}%\nCharging", self.battery_level)
+            } else {
+                format!("Battery level: {}%\nNot charging", self.battery_level)
+            };
         ToolTip {
             title: "HyperX Cloud II".to_string(),
             description: description,
