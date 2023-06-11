@@ -6,8 +6,8 @@ pub struct TrayHandler {
 }
 
 impl TrayHandler {
-    pub fn new() -> Self {
-        let tray_service = TrayService::new(BatteryTray::new());
+    pub fn new(tray: BatteryTray) -> Self {
+        let tray_service = TrayService::new(tray);
         let handle = tray_service.handle();
         tray_service.spawn();
         TrayHandler {
@@ -18,12 +18,21 @@ impl TrayHandler {
     pub fn update(&self, device: &Device) {
         self.handle.update(|tray: &mut BatteryTray| { tray.update(device); })
     }
+
+    pub fn set_status(&mut self, message: &str) {
+        self.handle.update(|tray: &mut BatteryTray| { tray.set_status(message); })
+    }
+
+    pub fn clear_status(&mut self) {
+        self.handle.update(|tray: &mut BatteryTray| { tray.clear_status(); })
+    }
 }
 
 #[derive(Debug)]
 pub struct BatteryTray {
     battery_level: u8,
     charging: bool,
+    muted: bool,
     status_message: Option<String>,
 }
 
@@ -32,6 +41,7 @@ impl BatteryTray {
         BatteryTray {
             battery_level: 0,
             charging: false,
+            muted: false,
             status_message: Some("No device found".to_string()),
         }
     }
@@ -39,13 +49,14 @@ impl BatteryTray {
     pub fn update(&mut self, device: &Device) {
         self.battery_level = device.battery_level;
         self.charging = device.charging;
+        self.muted = device.muted;
     }
 
-    pub fn set_status_message(&mut self, message: &str) {
+    pub fn set_status(&mut self, message: &str) {
         self.status_message = Some(message.to_string());
     }
 
-    pub fn clear_status_message(&mut self) {
+    pub fn clear_status(&mut self) {
         self.status_message = None;
     }
 }
@@ -66,20 +77,24 @@ impl Tray for BatteryTray {
         ]
     }
     fn tool_tip(&self) -> ToolTip {
-        let status =
-            match &self.status_message {
-                Some(m) => m,
-                None => "",
-            };
-        let state =
-            if self.charging {
-                format!("Battery level: {}%\nCharging", self.battery_level)
-            } else {
-                format!("Battery level: {}%\nNot charging", self.battery_level)
-            };
+        let description = match &self.status_message {
+            Some(m) => m.clone(),
+            None => {
+                let mut description = format!("Battery level: {}%", self.battery_level);
+                if self.charging {
+                    description += "\nCharging";
+                } else {
+                    description += "\nNot charging";
+                }
+                if self.muted {
+                    description += "\nMuted";
+                }
+                description
+            },
+        };
         ToolTip {
             title: "HyperX Cloud II".to_string(),
-            description: format!("{}\n{}", status, state),
+            description: description,
             icon_name: "".into(),
             icon_pixmap: Vec::new(),
         }
