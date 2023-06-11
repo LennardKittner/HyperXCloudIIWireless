@@ -1,10 +1,30 @@
-use ksni::{Tray, MenuItem, menu::{StandardItem}, ToolTip};
+use hyper_x_cloud_ii_wireless::Device;
+use ksni::{Tray, MenuItem, menu::{StandardItem}, ToolTip, TrayService, Handle};
+
+pub struct TrayHandler {
+    handle: Handle<BatteryTray>,
+}
+
+impl TrayHandler {
+    pub fn new() -> Self {
+        let tray_service = TrayService::new(BatteryTray::new());
+        let handle = tray_service.handle();
+        tray_service.spawn();
+        TrayHandler {
+            handle,
+        }
+    }
+
+    pub fn update(&self, device: &Device) {
+        self.handle.update(|tray: &mut BatteryTray| { tray.update(device); })
+    }
+}
 
 #[derive(Debug)]
 pub struct BatteryTray {
     battery_level: u8,
     charging: bool,
-    device_found: bool,
+    status_message: Option<String>,
 }
 
 impl BatteryTray {
@@ -12,18 +32,21 @@ impl BatteryTray {
         BatteryTray {
             battery_level: 0,
             charging: false,
-            device_found: false,
+            status_message: Some("No device found".to_string()),
         }
     }
 
-    pub fn update(&mut self, battery_level: u8, charging: bool) {
-        self.device_found = true;
-        self.battery_level = battery_level;
-        self.charging = charging;
+    pub fn update(&mut self, device: &Device) {
+        self.battery_level = device.battery_level;
+        self.charging = device.charging;
     }
 
-    pub fn no_device_found(&mut self) {
-        self.device_found = false;
+    pub fn set_status_message(&mut self, message: &str) {
+        self.status_message = Some(message.to_string());
+    }
+
+    pub fn clear_status_message(&mut self) {
+        self.status_message = None;
     }
 }
 
@@ -43,17 +66,20 @@ impl Tray for BatteryTray {
         ]
     }
     fn tool_tip(&self) -> ToolTip {
-        let description = 
-            if !self.device_found {
-                "No device found".to_string()
-            } else if self.charging {
+        let status =
+            match &self.status_message {
+                Some(m) => m,
+                None => "",
+            };
+        let state =
+            if self.charging {
                 format!("Battery level: {}%\nCharging", self.battery_level)
             } else {
                 format!("Battery level: {}%\nNot charging", self.battery_level)
             };
         ToolTip {
             title: "HyperX Cloud II".to_string(),
-            description: description,
+            description: format!("{}\n{}", status, state),
             icon_name: "".into(),
             icon_pixmap: Vec::new(),
         }
