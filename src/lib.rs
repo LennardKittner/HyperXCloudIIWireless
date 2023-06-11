@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use hidapi::{HidApi, HidDevice, HidError};
 use thiserror::Error;
 
@@ -7,10 +9,11 @@ const VENDOR_IDS: [u16; 2] = [0x0951, 0x03F0];
 const PRODUCT_IDS: [u16; 2] = [0x1718, 0x018B];
 
 const BATTERY_LEVEL_INDEX: usize = 7;
-const CHARGING_INDEX: usize = 5;
-const CHARGING_STATE: u8 = 0x10;
-const NOT_CHARGING_STATE: u8 = 0xF;
-const PREAMBLE: [u8; 5] = [6, 255, 187, 2, 0];
+const CHARGING_PREAMBLE: [u8; 5] = [6, 255, 187, 2, 0];
+const NOW_CHARGING: [u8; 5] = [6, 255, 187, 3, 1];
+const STOPPED_CHARGING: [u8; 5] = [6, 255, 187, 3, 0];
+const NOW_MUTED: [u8; 5] = [6, 255, 187, 32, 1];
+const STOPPED_MUTED: [u8; 5] = [6, 255, 187, 32, 0];
 
 const BATTERY_PACKET: [u8; 20] = {
     let mut packet = [0; 20];
@@ -18,20 +21,52 @@ const BATTERY_PACKET: [u8; 20] = {
     packet
 };
 
+pub enum DeviceEvent {
+    BatterLevel(u8),
+    NowCharging,
+    StoppedCharging,
+    NowMuted,
+    StoppedMuted,
+}
+
+impl DeviceEvent {
+    pub fn get_event_from_buf(buf: &[u8; 8], len: usize) -> Result<Self, DeviceError> {
+        if len == 0 {
+            return Err(DeviceError::NoResponse());
+        }
+        if len != 8 {
+            return Err(DeviceError::UnknownResponse(buf.clone()));
+        }
+        match buf {
+            buf if buf.starts_with(&NOW_CHARGING)      => Ok(Self::NowCharging),
+            buf if buf.starts_with(&STOPPED_CHARGING)  => Ok(Self::StoppedCharging),
+            buf if buf.starts_with(&CHARGING_PREAMBLE) => Ok(Self::BatterLevel(buf[BATTERY_LEVEL_INDEX])),
+            buf if buf.starts_with(&NOW_MUTED)         => Ok(Self::NowMuted),
+            buf if buf.starts_with(&STOPPED_MUTED)     => Ok(Self::StoppedMuted),
+            _ => Err(DeviceError::UnknownResponse(buf.clone())),
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum DeviceError {
-    #[error("Error: {0}")]
+    #[error("{0}")]
     HidError(#[from] HidError),
-    #[error("Error: No device found.")]
+    #[error("No device found.")]
     NoDeviceFound(),
-    #[error("Error: No response. Is the headset turned on?")]
+    #[error("No response. Is the headset turned on?")]
     HeadSetOff(),
-    #[error("Error: Unknown response: {0:?}")]
+    #[error("No response.")]
+    NoResponse(),
+    #[error("Unknown response: {0:?}")]
     UnknownResponse([u8; 8]),
 }
    
 pub struct Device {
     hid_device: HidDevice,
+    pub battery_level: u8,
+    pub charging: bool,
+    pub muted: bool,
 }
 
 impl Device {
@@ -44,24 +79,55 @@ impl Device {
                 None
             }
         }).ok_or(DeviceError::NoDeviceFound())??;
-        Ok(Device { hid_device })
+        Ok(Device { 
+            hid_device,
+            charging: false,
+            battery_level: 0,
+            muted: false,
+         })
     }
 
-    pub fn get_battery_level(&self) -> Result<(u8, bool), DeviceError> {
-        self.hid_device.write(&BATTERY_PACKET)?;
-        let mut buf = [0u8; 8];
-        let res = self.hid_device.read_timeout(&mut buf[..], 800)?;
-        if res == 0 {
-            return Err(DeviceError::HeadSetOff());
-        }
-        if !buf.starts_with(&PREAMBLE) {
-            return Err(DeviceError::UnknownResponse(buf));
-        }
-        let charging = match buf[CHARGING_INDEX] {
-            CHARGING_STATE => true,
-            NOT_CHARGING_STATE => false,
-            _ => return Err(DeviceError::UnknownResponse(buf)),
+    fn update_self_with_event(&mut self, event: &DeviceEvent) {
+        match event {
+            DeviceEvent::BatterLevel(level) => self.battery_level = level.clone(),
+            DeviceEvent::NowCharging => self.charging = true,
+            DeviceEvent::StoppedCharging => self.charging = false,
+            DeviceEvent::NowMuted => self.muted = true,
+            DeviceEvent::StoppedMuted => self.muted = false,
         };
-        Ok((buf[BATTERY_LEVEL_INDEX], charging))
+    }
+
+    pub fn wait_for_updates(&mut self, duration: Duration) -> Result<DeviceEvent, DeviceError> {
+        let mut buf = [0u8; 8];
+        let res = self.hid_device.read_timeout(&mut buf[..], duration.as_millis() as i32)?;
+        println!("{:?}", &buf[..res]);
+       
+        match DeviceEvent::get_event_from_buf(&buf, res) {
+            Ok(event) => {
+                self.update_self_with_event(&event);
+                Ok(event)
+            },
+            Err(error) => Err(error),
+        }
+    }
+
+    pub fn update_battery_level(&mut self) -> Result<(u8, bool), DeviceError> {
+        for _ in 0..10 {
+            self.hid_device.write(&BATTERY_PACKET)?;
+            let mut buf = [0u8; 8];
+            let res = self.hid_device.read_timeout(&mut buf[..], 1000)?;
+            println!("{:?}", &buf[..res]);
+            match DeviceEvent::get_event_from_buf(&buf, res) {
+                Ok(DeviceEvent::BatterLevel(level)) => {
+                    self.update_self_with_event(&DeviceEvent::BatterLevel(level));
+                    return Ok((self.battery_level, self.charging));
+                }
+                Ok(event) => self.update_self_with_event(&event),
+                Err(DeviceError::NoResponse()) => return Err(DeviceError::HeadSetOff()),
+                Err(error) => return Err(error),
+            };
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+        Err(DeviceError::NoResponse())
     }
 }
