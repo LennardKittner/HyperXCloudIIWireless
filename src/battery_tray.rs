@@ -31,8 +31,9 @@ impl TrayHandler {
 #[derive(Debug)]
 pub struct BatteryTray {
     battery_level: u8,
-    charging: bool,
-    muted: bool,
+    charging: Option<bool>,
+    muted: Option<bool>,
+    mic_connected: Option<bool>,
     status_message: Option<String>,
 }
 
@@ -40,8 +41,9 @@ impl BatteryTray {
     pub fn new() -> Self {
         BatteryTray {
             battery_level: 0,
-            charging: false,
-            muted: false,
+            charging: None,
+            muted: None,
+            mic_connected: None,
             status_message: Some("No device found".to_string()),
         }
     }
@@ -50,6 +52,7 @@ impl BatteryTray {
         self.battery_level = device.battery_level;
         self.charging = device.charging;
         self.muted = device.muted;
+        self.mic_connected = device.mic_connected;
     }
 
     pub fn set_status(&mut self, message: &str) {
@@ -81,13 +84,26 @@ impl Tray for BatteryTray {
             Some(m) => m.clone(),
             None => {
                 let mut description = format!("Battery level: {}%", self.battery_level);
-                if self.charging {
-                    description += "\nCharging";
-                } else {
-                    description += "\nNot charging";
+                if let Some(charging) = self.charging {
+                    if charging {
+                        description += "\nCharging";
+                    } else {
+                        description += "\nNot charging";
+                    }
                 }
-                if self.muted {
-                    description += "\nMuted";
+                if let Some(muted) = self.muted {
+                    if muted {
+                        description += "\nMuted";
+                    } else {
+                        description += "\nNot muted";
+                    }
+                }
+                if let Some(mic_connected) = self.mic_connected {
+                    if mic_connected {
+                        description += "\nMicrophone connected";
+                    } else {
+                        description += "\nMicrophone not connected";
+                    }
                 }
                 description
             },

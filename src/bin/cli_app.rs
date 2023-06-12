@@ -8,7 +8,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let (battery_level, _) = match device.update_battery_level() {
+    let battery_level = match device.update_battery_level() {
         Ok(t) => t,
         Err(error) => {
             eprintln!("{error}");

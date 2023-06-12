@@ -14,6 +14,8 @@ const NOW_CHARGING: [u8; 5] = [6, 255, 187, 3, 1];
 const STOPPED_CHARGING: [u8; 5] = [6, 255, 187, 3, 0];
 const NOW_MUTED: [u8; 5] = [6, 255, 187, 32, 1];
 const STOPPED_MUTED: [u8; 5] = [6, 255, 187, 32, 0];
+const NOW_MIC_DISCONNECTED: [u8; 5] = [6, 255, 187, 8, 0];
+const NOW_MIC_CONNECTED: [u8; 5] = [6, 255, 187, 8, 1];
 
 const BATTERY_PACKET: [u8; 20] = {
     let mut packet = [0; 20];
@@ -27,6 +29,8 @@ pub enum DeviceEvent {
     StoppedCharging,
     NowMuted,
     StoppedMuted,
+    NowMicDisconnected,
+    NowMicConnected,
 }
 
 impl DeviceEvent {
@@ -43,6 +47,8 @@ impl DeviceEvent {
             buf if buf.starts_with(&CHARGING_PREAMBLE) => Ok(Self::BatterLevel(buf[BATTERY_LEVEL_INDEX])),
             buf if buf.starts_with(&NOW_MUTED)         => Ok(Self::NowMuted),
             buf if buf.starts_with(&STOPPED_MUTED)     => Ok(Self::StoppedMuted),
+            buf if buf.starts_with(&NOW_MIC_CONNECTED) => Ok(Self::NowMicConnected),
+            buf if buf.starts_with(&NOW_MIC_DISCONNECTED) => Ok(Self::NowMicDisconnected),
             _ => Err(DeviceError::UnknownResponse(buf.clone())),
         }
     }
@@ -65,8 +71,9 @@ pub enum DeviceError {
 pub struct Device {
     hid_device: HidDevice,
     pub battery_level: u8,
-    pub charging: bool,
-    pub muted: bool,
+    pub charging: Option<bool>,
+    pub muted: Option<bool>,
+    pub mic_connected: Option<bool>,
 }
 
 impl Device {
@@ -81,19 +88,22 @@ impl Device {
         }).ok_or(DeviceError::NoDeviceFound())??;
         Ok(Device { 
             hid_device,
-            charging: false,
+            charging: None,
             battery_level: 0,
-            muted: false,
+            muted: None,
+            mic_connected: None,
          })
     }
 
     fn update_self_with_event(&mut self, event: &DeviceEvent) {
         match event {
             DeviceEvent::BatterLevel(level) => self.battery_level = level.clone(),
-            DeviceEvent::NowCharging => self.charging = true,
-            DeviceEvent::StoppedCharging => self.charging = false,
-            DeviceEvent::NowMuted => self.muted = true,
-            DeviceEvent::StoppedMuted => self.muted = false,
+            DeviceEvent::NowCharging => self.charging = Some(true),
+            DeviceEvent::StoppedCharging => self.charging = Some(false),
+            DeviceEvent::NowMuted => self.muted = Some(true),
+            DeviceEvent::StoppedMuted => self.muted = Some(false),
+            DeviceEvent::NowMicDisconnected => self.mic_connected = Some(false),
+            DeviceEvent::NowMicConnected => self.mic_connected = Some(true),
         };
     }
 
@@ -111,8 +121,8 @@ impl Device {
         }
     }
 
-    pub fn update_battery_level(&mut self) -> Result<(u8, bool), DeviceError> {
-        for _ in 0..10 {
+    pub fn update_battery_level(&mut self) -> Result<u8, DeviceError> {
+        for _ in 0..10 { // loop if other events are currently happening.
             self.hid_device.write(&BATTERY_PACKET)?;
             let mut buf = [0u8; 8];
             let res = self.hid_device.read_timeout(&mut buf[..], 1000)?;
@@ -120,7 +130,7 @@ impl Device {
             match DeviceEvent::get_event_from_buf(&buf, res) {
                 Ok(DeviceEvent::BatterLevel(level)) => {
                     self.update_self_with_event(&DeviceEvent::BatterLevel(level));
-                    return Ok((self.battery_level, self.charging));
+                    return Ok(self.battery_level);
                 }
                 Ok(event) => self.update_self_with_event(&event),
                 Err(DeviceError::NoResponse()) => return Err(DeviceError::HeadSetOff()),
