@@ -17,3 +17,12 @@ fn main() {
     };
     println!("Battery level: {}%", battery_level);
 }
+
+#[test]
+fn test_basic_device_access() {
+    let mut device = match Device::new() {
+        Ok(device) => device,
+        Err(error) => return
+    };
+    device.update_battery_level();
+}

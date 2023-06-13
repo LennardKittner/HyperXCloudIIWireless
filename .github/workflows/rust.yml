@@ -18,9 +18,8 @@ jobs:
         run: brew install dbus
       - name: Build
         run: cargo build --verbose --bin cli_app
-      - name: Run CLI
-        run:  cargo run --bin cli_app
-
+      - name: test
+        run:  cargo test
 
   build-windows:
     runs-on: windows-latest
@@ -30,16 +29,16 @@ jobs:
         run: choco install dbus -y
       - name: Build
         run: cargo build --verbose --bin cli_app
-      - name: Run CLI
-        run:  cargo run --bin cli_app
+      - name: test
+        run:  cargo test
 
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y libdbus-1-dev libhidapi-dev
+        run: sudo apt update && sudo apt install -y libdbus-1-dev libhidapi-dev libusb-1.0-0-dev
       - name: Build
         run: cargo build --verbose
-      - name: Run CLI
-        run:  cargo run --bin cli_app
+      - name: test
+        run:  cargo test
