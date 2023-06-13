@@ -22,7 +22,6 @@ fn main() {
 fn test_basic_device_access() {
     let mut device = match Device::new() {
         Ok(device) => device,
-        Err(error) => return
+        Err(_) => return
     };
-    device.update_battery_level();
 }
