@@ -14,6 +14,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: brew install dbus
       - name: Build
         run: cargo build --verbose --bin cli_app
       - name: Run CLI
@@ -24,6 +26,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: choco install dbus -y
       - name: Build
         run: cargo build --verbose --bin cli_app
       - name: Run CLI
@@ -34,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y libdbus-1-dev
+        run: sudo apt update && sudo apt install -y libdbus-1-dev libhidapi-dev
       - name: Build
         run: cargo build --verbose
       - name: Run CLI
