@@ -20,7 +20,7 @@ fn main() {
 
 #[test]
 fn test_basic_device_access() {
-    let mut device = match Device::new() {
+    let _ = match Device::new() {
         Ok(device) => device,
         Err(_) => return
     };

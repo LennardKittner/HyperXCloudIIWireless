@@ -39,7 +39,7 @@ impl DeviceEvent {
             return Err(DeviceError::NoResponse());
         }
         if len != 8 {
-            return Err(DeviceError::UnknownResponse(buf.clone()));
+            return Err(DeviceError::UnknownResponse(buf.clone(), len));
         }
         match buf {
             buf if buf.starts_with(&NOW_CHARGING)      => Ok(Self::NowCharging),
@@ -49,7 +49,7 @@ impl DeviceEvent {
             buf if buf.starts_with(&STOPPED_MUTED)     => Ok(Self::StoppedMuted),
             buf if buf.starts_with(&NOW_MIC_CONNECTED) => Ok(Self::NowMicConnected),
             buf if buf.starts_with(&NOW_MIC_DISCONNECTED) => Ok(Self::NowMicDisconnected),
-            _ => Err(DeviceError::UnknownResponse(buf.clone())),
+            _ => Err(DeviceError::UnknownResponse(buf.clone(), len)),
         }
     }
 }
@@ -64,8 +64,8 @@ pub enum DeviceError {
     HeadSetOff(),
     #[error("No response.")]
     NoResponse(),
-    #[error("Unknown response: {0:?}")]
-    UnknownResponse([u8; 8]),
+    #[error("Unknown response: {0:?} with length: {1}")]
+    UnknownResponse([u8; 8], usize),
 }
    
 pub struct Device {
@@ -110,7 +110,6 @@ impl Device {
     pub fn wait_for_updates(&mut self, duration: Duration) -> Result<DeviceEvent, DeviceError> {
         let mut buf = [0u8; 8];
         let res = self.hid_device.read_timeout(&mut buf[..], duration.as_millis() as i32)?;
-        println!("{:?}", &buf[..res]);
        
         match DeviceEvent::get_event_from_buf(&buf, res) {
             Ok(event) => {
@@ -126,7 +125,6 @@ impl Device {
             self.hid_device.write(&BATTERY_PACKET)?;
             let mut buf = [0u8; 8];
             let res = self.hid_device.read_timeout(&mut buf[..], 1000)?;
-            println!("{:?}", &buf[..res]);
             match DeviceEvent::get_event_from_buf(&buf, res) {
                 Ok(DeviceEvent::BatterLevel(level)) => {
                     self.update_self_with_event(&DeviceEvent::BatterLevel(level));
@@ -139,5 +137,12 @@ impl Device {
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
         Err(DeviceError::NoResponse())
+    }
+
+    pub fn clear_state(&mut self) {
+        self.charging = None;
+        self.battery_level = 0;
+        self.muted = None;
+        self.mic_connected = None;
     }
 }

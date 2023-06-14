@@ -29,17 +29,13 @@ fn handle_error(error: DeviceError, device: &mut Device, tray_handler: &mut Tray
         }
         DeviceError::NoDeviceFound() => {
             eprintln!("{}", DeviceError::NoDeviceFound());
-            device.charging = None;
-            device.mic_connected = None;
-            device.muted = None;
+            device.clear_state();
             tray_handler.update(device);
             tray_handler.set_status( &DeviceError::NoDeviceFound().to_string());
         }
         DeviceError::HeadSetOff() => {
             eprintln!("{}", DeviceError::HeadSetOff());
-            device.charging = None;
-            device.mic_connected = None;
-            device.muted = None;
+            device.clear_state();
             tray_handler.update(device);
             tray_handler.set_status(&DeviceError::HeadSetOff().to_string());
         }
