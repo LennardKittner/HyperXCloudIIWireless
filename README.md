@@ -90,6 +90,6 @@ I then only listened to the port on which this request was sent, e.g., `(usb.src
 If you have an older headset, you may have to use a different vendor and product ID `usb.idVendor == 0x0951 && usb.idProduct == 0x1718`.
 Once you have set the filters, you can perform various actions and review the packets transmitted to and from the headset.
 
-## Acknowledgments
+## Other Projects
 
-This project was inspired by X-cloud-flight](https://github.com/kondinskisX-cloud-flight).
+This project was inspired by [hyperx-cloud-flight](https://github.com/kondinskis/hyperx-cloud-flight).
