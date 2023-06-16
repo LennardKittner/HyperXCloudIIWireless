@@ -9,7 +9,7 @@ const VENDOR_IDS: [u16; 2] = [0x0951, 0x03F0];
 const PRODUCT_IDS: [u16; 2] = [0x1718, 0x018B];
 
 const BATTERY_LEVEL_INDEX: usize = 7;
-const CHARGING_PREAMBLE: [u8; 5] = [6, 255, 187, 2, 0];
+const CHARGING_PREAMBLE: [u8; 4] = [11, 0 , 187, 2];
 const NOW_CHARGING: [u8; 5] = [6, 255, 187, 3, 1];
 const STOPPED_CHARGING: [u8; 5] = [6, 255, 187, 3, 0];
 const NOW_MUTED: [u8; 5] = [6, 255, 187, 32, 1];
@@ -17,11 +17,8 @@ const STOPPED_MUTED: [u8; 5] = [6, 255, 187, 32, 0];
 const NOW_MIC_DISCONNECTED: [u8; 5] = [6, 255, 187, 8, 0];
 const NOW_MIC_CONNECTED: [u8; 5] = [6, 255, 187, 8, 1];
 
-const BATTERY_PACKET: [u8; 20] = {
-    let mut packet = [0; 20];
-    (packet[0], packet[1], packet[2], packet[3]) = (0x06, 0xff, 0xbb, 0x02);
-    packet
-};
+const BATTERY_PACKET: [u8; 62] = [6, 0, 2, 0, 154, 0, 0, 104, 74, 142, 10, 0, 0, 0, 187, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const BATTERY_PACKET_2: [u8; 20] = [6, 0, 2, 0, 154, 0, 0, 104, 74, 142, 10, 0, 0, 0, 187, 2, 0, 0, 0, 0];
 
 pub enum DeviceEvent {
     BatterLevel(u8),
@@ -78,14 +75,14 @@ pub struct Device {
 
 impl Device {
     pub fn new() -> Result<Self, DeviceError> {
-        let hid_api = HidApi::new()?;
+        let hid_api = HidApi::new().unwrap();
         let hid_device = hid_api.device_list().find_map(|info| {
             if PRODUCT_IDS.contains(&info.product_id()) && VENDOR_IDS.contains(&info.vendor_id()) {
                 Some(hid_api.open(info.vendor_id(), info.product_id()))
             } else {
                 None
             }
-        }).ok_or(DeviceError::NoDeviceFound())??;
+        }).ok_or(DeviceError::NoDeviceFound()).unwrap().unwrap();
         Ok(Device { 
             hid_device,
             charging: None,
@@ -109,7 +106,7 @@ impl Device {
 
     pub fn wait_for_updates(&mut self, duration: Duration) -> Result<DeviceEvent, DeviceError> {
         let mut buf = [0u8; 8];
-        let res = self.hid_device.read_timeout(&mut buf[..], duration.as_millis() as i32)?;
+        let res = self.hid_device.read_timeout(&mut buf[..], duration.as_millis() as i32).unwrap();
        
         match DeviceEvent::get_event_from_buf(&buf, res) {
             Ok(event) => {
@@ -122,9 +119,10 @@ impl Device {
 
     pub fn update_battery_level(&mut self) -> Result<u8, DeviceError> {
         for _ in 0..10 { // loop if other events are currently happening.
-            self.hid_device.write(&BATTERY_PACKET)?;
+            self.hid_device.write(&BATTERY_PACKET).unwrap();
             let mut buf = [0u8; 8];
-            let res = self.hid_device.read_timeout(&mut buf[..], 1000)?;
+            let res = self.hid_device.read_timeout(&mut buf[..], 1000).unwrap();
+            print!("{:?}", &buf[..res]);
             match DeviceEvent::get_event_from_buf(&buf, res) {
                 Ok(DeviceEvent::BatterLevel(level)) => {
                     self.update_self_with_event(&DeviceEvent::BatterLevel(level));
