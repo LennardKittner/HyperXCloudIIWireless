@@ -7,6 +7,7 @@ A CLI and tray application to monitor HyperX Cloud II Wireless headset battery l
 The CLI application is compatible with both Linux and MacOS operating systems. However, the tray application is only functional on Linux. Although it was only tested on Manjaro/KDE, it should also work on other distribution and desktop environments.
 
 Currently, only the HyperX Cloud II Wireless is supported.
+However, the HyperX Cloud II Wireless comes in two versions: one produced before HP acquired HyperX and one after. The application has only been tested on the HyperX Cloud II Wireless with the HP vendorID.
 
 ## Prerequisites
 
@@ -65,6 +66,8 @@ To build both applications on Linux, use:
 `cargo build --release`
 
 You can also download a compiled version from [releases](https://github.com/LennardKittner/HyperXCloudIIWireless/releases).
+
+`cargo build --release` **will fail on MacOS** because cargo will try to build the tray application, but some dependencies are exclusive to Linux.
 
 ## Usage
 
