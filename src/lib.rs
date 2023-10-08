@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use hidapi::{HidApi, HidDevice, HidError};
-use thiserror::Error;
+use thistermination::TerminationFull;
 
 // Possible vendor IDs [hyperx , HP]
 const VENDOR_IDS: [u16; 2] = [0x0951, 0x03F0];
@@ -54,17 +54,17 @@ impl DeviceEvent {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(TerminationFull)]
 pub enum DeviceError {
-    #[error("{0}")]
+    #[termination(msg("{0:?}"))]
     HidError(#[from] HidError),
-    #[error("No device found.")]
+    #[termination(msg("No device found."))]
     NoDeviceFound(),
-    #[error("No response. Is the headset turned on?")]
+    #[termination(msg("No response. Is the headset turned on?"))]
     HeadSetOff(),
-    #[error("No response.")]
+    #[termination(msg("No response."))]
     NoResponse(),
-    #[error("Unknown response: {0:?} with length: {1}")]
+    #[termination(msg("Unknown response: {0:?} with length: {1:?}"))]
     UnknownResponse([u8; 8], usize),
 }
    
