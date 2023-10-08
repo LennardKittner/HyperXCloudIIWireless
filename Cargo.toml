@@ -9,5 +9,5 @@ edition = "2021"
 thiserror = "1"
 hidapi = "2.3.3"
 thistermination = "1.0.0"
-[target.'cfg(unix)'.hyper_x_cloud_ii_wireless.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 ksni = "0.2.0"
