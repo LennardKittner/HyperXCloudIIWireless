@@ -66,10 +66,18 @@ impl BatteryTray {
 
 impl Tray for BatteryTray {
     fn icon_name(&self) -> String {
-        "headset".into()
+        "audio-headset".into()
+    }
+    fn id(&self) -> String {
+        env!("CARGO_PKG_NAME").into()
     }
     fn menu(&self) -> Vec<MenuItem<Self>> {
         vec![
+            StandardItem {
+                label: format!("Battery level: {bat}% ({crg})", bat = self.battery_level,crg = (if self.charging.is_some() { "Charging" } else {"Discharging"})).into(),
+                ..Default::default()
+            }
+            .into(),
             StandardItem {
                 label: "Exit".into(),
                 icon_name: "application-exit".into(),
@@ -111,7 +119,7 @@ impl Tray for BatteryTray {
         ToolTip {
             title: "HyperX Cloud II".to_string(),
             description: description,
-            icon_name: "".into(),
+            icon_name: "audio-headset".into(),
             icon_pixmap: Vec::new(),
         }
     }
