@@ -65,43 +65,11 @@ impl BatteryTray {
 }
 
 impl Tray for BatteryTray {
-    fn icon_name(&self) -> String {
-        "audio-headset".into()
-    }
     fn id(&self) -> String {
         env!("CARGO_PKG_NAME").into()
     }
-    fn menu(&self) -> Vec<MenuItem<Self>> {
-        let mut items = vec![
-            StandardItem {
-                label: format!("Battery level: {bat}% ({crg})", bat = self.battery_level,crg = (if self.charging.is_some() { "Charging" } else {"Discharging"})).into(),
-                enabled: false,
-                ..Default::default()
-            }
-            .into(),
-            StandardItem {
-                label: "Exit".into(),
-                icon_name: "application-exit".into(),
-                activate: Box::new(|_| std::process::exit(0)),
-                ..Default::default()
-            }
-            .into(),
-        ];
-        if let Some(muted) = self.muted {
-            items.insert(1, StandardItem {
-                label: if muted { "Muted" } else { "Not muted" }.into(),
-                enabled: false,
-                ..Default::default()
-            }.into());
-        }
-        if let Some(mic_connected) = self.mic_connected {
-            items.insert(2, StandardItem {
-                label: if mic_connected { "Microphone connected" } else { "Microphone not connected" }.into(),
-                enabled: false,
-                ..Default::default()
-            }.into());
-        }
-        items
+    fn icon_name(&self) -> String {
+        "audio-headset".into()
     }
     fn tool_tip(&self) -> ToolTip {
         let description = match &self.status_message {
@@ -134,9 +102,41 @@ impl Tray for BatteryTray {
         };
         ToolTip {
             title: "HyperX Cloud II".to_string(),
-            description: description,
+            description,
             icon_name: "audio-headset".into(),
             icon_pixmap: Vec::new(),
         }
+    }
+    fn menu(&self) -> Vec<MenuItem<Self>> {
+        let mut items = vec![
+            StandardItem {
+                label: format!("Battery level: {bat}% ({crg})", bat = self.battery_level,crg = (if self.charging.is_some() { "Charging" } else {"Discharging"})),
+                enabled: false,
+                ..Default::default()
+            }
+            .into(),
+            StandardItem {
+                label: "Exit".into(),
+                icon_name: "application-exit".into(),
+                activate: Box::new(|_| std::process::exit(0)),
+                ..Default::default()
+            }
+            .into(),
+        ];
+        if let Some(muted) = self.muted {
+            items.insert(1, StandardItem {
+                label: if muted { "Muted" } else { "Not muted" }.into(),
+                enabled: false,
+                ..Default::default()
+            }.into());
+        }
+        if let Some(mic_connected) = self.mic_connected {
+            items.insert(2, StandardItem {
+                label: if mic_connected { "Microphone connected" } else { "Microphone not connected" }.into(),
+                enabled: false,
+                ..Default::default()
+            }.into());
+        }
+        items
     }
 }

@@ -39,7 +39,7 @@ impl DeviceEvent {
             return Err(DeviceError::NoResponse());
         }
         if len != 8 {
-            return Err(DeviceError::UnknownResponse(buf.clone(), len));
+            return Err(DeviceError::UnknownResponse(*buf, len));
         }
         match buf {
             buf if buf.starts_with(&NOW_CHARGING)      => Ok(Self::NowCharging),
@@ -49,7 +49,7 @@ impl DeviceEvent {
             buf if buf.starts_with(&STOPPED_MUTED)     => Ok(Self::StoppedMuted),
             buf if buf.starts_with(&NOW_MIC_CONNECTED) => Ok(Self::NowMicConnected),
             buf if buf.starts_with(&NOW_MIC_DISCONNECTED) => Ok(Self::NowMicDisconnected),
-            _ => Err(DeviceError::UnknownResponse(buf.clone(), len)),
+            _ => Err(DeviceError::UnknownResponse(*buf, len)),
         }
     }
 }
@@ -97,7 +97,7 @@ impl Device {
 
     fn update_self_with_event(&mut self, event: &DeviceEvent) {
         match event {
-            DeviceEvent::BatterLevel(level) => self.battery_level = level.clone(),
+            DeviceEvent::BatterLevel(level) => self.battery_level = *level,
             DeviceEvent::NowCharging => self.charging = Some(true),
             DeviceEvent::StoppedCharging => self.charging = Some(false),
             DeviceEvent::NowMuted => self.muted = Some(true),
