@@ -4,10 +4,13 @@ A CLI and tray application to monitor HyperX Cloud II Wireless headset battery l
 <img src=./screenshots/tray_app.png alt="tray_app" width="400">
 
 ## Compatibility
-The CLI application is compatible with both Linux and MacOS operating systems. However, the tray application is only functional on Linux. Although it was only tested on Manjaro/KDE, it should also work on other distribution and desktop environments.
+The CLI application is compatible with both Linux and MacOS operating systems. 
+However, the tray application is only functional on Linux. 
+Although it was only tested on Manjaro/KDE, it should also work on other distribution and desktop environments.
 
-Currently, only the HyperX Cloud II Wireless is supported.
-However, the HyperX Cloud II Wireless comes in two versions: one produced before HP acquired HyperX and one after. The application has only been tested on the HyperX Cloud II Wireless with the HP vendorID.
+Currently, only the HyperX Cloud II Wireless and HyperX Cloud Stinger 2 Wireless.
+However, the HyperX Cloud II Wireless comes in two versions: one produced before HP acquired HyperX and one after.
+The application has only been tested on the HyperX Cloud II Wireless with the HP vendorID.
 
 ## Prerequisites
 
@@ -50,7 +53,9 @@ Create a new file in /etc/udev/rules.d/99-hyperx-cloud-II.rules with the followi
 ```
 SUBSYSTEMS=="usb", ATTRS{idProduct}=="018b", ATTRS{idVendor}=="03f0", MODE="0666"
 SUBSYSTEMS=="usb", ATTRS{idProduct}=="1718", ATTRS{idVendor}=="0951", MODE="0666"
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="0d93", ATTRS{idVendor}=="03f0", MODE="0666"
 
+KERNEL=="hidraw*", ATTRS{idProduct}=="0d93", ATTRS{idVendor}=="03f0", MODE="0666"
 KERNEL=="hidraw*", ATTRS{idProduct}=="018b", ATTRS{idVendor}=="03f0", MODE="0666"
 KERNEL=="hidraw*", ATTRS{idProduct}=="1718", ATTRS{idVendor}=="0951", MODE="0666"
 ```
