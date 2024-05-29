@@ -72,9 +72,10 @@ impl Tray for BatteryTray {
         env!("CARGO_PKG_NAME").into()
     }
     fn menu(&self) -> Vec<MenuItem<Self>> {
-        vec![
+        let mut items = vec![
             StandardItem {
                 label: format!("Battery level: {bat}% ({crg})", bat = self.battery_level,crg = (if self.charging.is_some() { "Charging" } else {"Discharging"})).into(),
+                enabled: false,
                 ..Default::default()
             }
             .into(),
@@ -85,7 +86,22 @@ impl Tray for BatteryTray {
                 ..Default::default()
             }
             .into(),
-        ]
+        ];
+        if let Some(muted) = self.muted {
+            items.insert(1, StandardItem {
+                label: if muted { "Muted" } else { "Not muted" }.into(),
+                enabled: false,
+                ..Default::default()
+            }.into());
+        }
+        if let Some(mic_connected) = self.mic_connected {
+            items.insert(2, StandardItem {
+                label: if mic_connected { "Microphone connected" } else { "Microphone not connected" }.into(),
+                enabled: false,
+                ..Default::default()
+            }.into());
+        }
+        items
     }
     fn tool_tip(&self) -> ToolTip {
         let description = match &self.status_message {
