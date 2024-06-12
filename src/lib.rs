@@ -6,7 +6,7 @@ use thistermination::TerminationFull;
 // Possible vendor IDs [hyperx , HP]
 const VENDOR_IDS: [u16; 2] = [0x0951, 0x03F0];
 // Possible Cloud II Wireless product IDs
-const PRODUCT_IDS: [u16; 3] = [0x1718, 0x018B, 0x0D93];
+const PRODUCT_IDS: [u16; 4] = [0x1718, 0x018B, 0x0D93, 0x0696];
 
 const BATTERY_LEVEL_INDEX: usize = 7;
 const CHARGING_PREAMBLE: [u8; 5] = [6, 255, 187, 2, 0];
