@@ -1,12 +1,12 @@
-mod cloud_ii_wireless_dts;
+pub mod cloud_ii_wireless_dts;
 
 use hidapi::{HidApi, HidDevice, HidError};
-use std::time::Duration;
+use std::{fmt::Display, time::Duration};
 use thistermination::TerminationFull;
 
 //TODO: connect to rest of code base
-//TODO: remove old lib stuff
 
+#[derive(Debug)]
 pub struct DeviceState {
     hid_device: HidDevice,
     pub battery_level: Option<u8>,
@@ -20,6 +20,45 @@ pub struct DeviceState {
     pub side_tone_volume: Option<u8>,
     pub voice_prompt_on: Option<bool>,
     pub connected: Option<bool>,
+}
+
+impl Display for DeviceState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let unknown = "Unknown".to_string();
+        write!(
+            f,
+            "
+            Battery level:            {}%
+            Carging status:           {}
+            Muted:                    {}
+            Mic connected:            {}
+            Automatic shutdown after: {}min
+            Pairing info:             {}
+            Product color:            {}
+            Side tone on:             {}
+            Side tone volume:         {}
+            Voice prompt on:          {}
+            Connected:                {}
+        ",
+            self.battery_level
+                .map_or(unknown.clone(), |l| l.to_string()),
+            self.charging.map_or(unknown.clone(), |c| c.to_string()),
+            self.muted.map_or(unknown.clone(), |m| m.to_string()),
+            self.mic_connected
+                .map_or(unknown.clone(), |m| m.to_string()),
+            self.automatic_shutdown_after
+                .map_or(unknown.clone(), |a| (a.as_secs() / 60).to_string()),
+            self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
+            self.product_color
+                .map_or(unknown.clone(), |c| c.to_string()),
+            self.side_tone_on.map_or(unknown.clone(), |s| s.to_string()),
+            self.side_tone_volume
+                .map_or(unknown.clone(), |s| s.to_string()),
+            self.voice_prompt_on
+                .map_or(unknown.clone(), |v| v.to_string()),
+            self.connected.map_or(unknown.clone(), |c| c.to_string()),
+        )
+    }
 }
 
 impl DeviceState {
@@ -114,6 +153,19 @@ pub enum Color {
     UnknownColor(u8),
 }
 
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Color::Red => "Red".to_string(),
+                Color::UnknownColor(n) => format!("Unknown color {}", n),
+            }
+        )
+    }
+}
+
 impl From<u8> for Color {
     fn from(color: u8) -> Self {
         match color {
@@ -131,6 +183,21 @@ pub enum ChargingStatus {
     ChargeError,
 }
 
+impl Display for ChargingStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ChargingStatus::NotCharging => "Not charging",
+                ChargingStatus::Charging => "Charging",
+                ChargingStatus::FullyCharged => "Fully charged",
+                ChargingStatus::ChargeError => "Charging error!",
+            }
+        )
+    }
+}
+
 impl From<u8> for ChargingStatus {
     fn from(value: u8) -> ChargingStatus {
         match value {
@@ -142,7 +209,7 @@ impl From<u8> for ChargingStatus {
     }
 }
 
-trait Device {
+pub trait Device {
     fn get_charging_packet(&self) -> Vec<u8>;
     fn get_battery_packet(&self) -> Vec<u8>;
     fn set_automatic_shut_down_packet(&self, shutdown_after: Duration) -> Vec<u8>;
@@ -170,6 +237,10 @@ trait Device {
             .read_timeout(&mut buf[..], duration.as_millis() as i32)
             .ok()?;
 
+        if res == 0 {
+            return None;
+        }
+
         self.get_event_from_device_response(&buf[0..res])
     }
 
@@ -181,10 +252,10 @@ trait Device {
             self.get_mute_packet(),
             self.get_mic_connected_packet(),
             self.get_pairing_info_packet(),
-            self.get_product_color_packet(),
+            // self.get_product_color_packet(),
             self.get_side_tone_packet(),
             self.get_side_tone_volume_packet(),
-            self.get_voice_prompt_packet(),
+            // self.get_voice_prompt_packet(),
             self.get_wireless_connected_status_packet(),
         ];
 
@@ -204,4 +275,3 @@ trait Device {
         }
     }
 }
-
