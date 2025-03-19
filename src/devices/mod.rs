@@ -210,22 +210,22 @@ impl From<u8> for ChargingStatus {
 }
 
 pub trait Device {
-    fn get_charging_packet(&self) -> Vec<u8>;
-    fn get_battery_packet(&self) -> Vec<u8>;
-    fn set_automatic_shut_down_packet(&self, shutdown_after: Duration) -> Vec<u8>;
-    fn get_automatic_shut_down_packet(&self) -> Vec<u8>;
-    fn get_mute_packet(&self) -> Vec<u8>;
-    fn set_mute_packet(&self, mute: bool) -> Vec<u8>;
-    fn get_mic_connected_packet(&self) -> Vec<u8>;
-    fn get_pairing_info_packet(&self) -> Vec<u8>;
-    fn get_product_color_packet(&self) -> Vec<u8>;
-    fn get_side_tone_packet(&self) -> Vec<u8>;
-    fn set_side_tone_packet(&self, side_tone_on: bool) -> Vec<u8>;
-    fn get_side_tone_volume_packet(&self) -> Vec<u8>;
-    fn set_side_tone_volume_packet(&self) -> Vec<u8>;
-    fn get_voice_prompt_packet(&self) -> Vec<u8>;
-    fn set_voice_prompt_packet(&self, enable: bool) -> Vec<u8>;
-    fn get_wireless_connected_status_packet(&self) -> Vec<u8>;
+    fn get_charging_packet(&self) -> Option<Vec<u8>>;
+    fn get_battery_packet(&self) -> Option<Vec<u8>>;
+    fn set_automatic_shut_down_packet(&self, shutdown_after: Duration) -> Option<Vec<u8>>;
+    fn get_automatic_shut_down_packet(&self) -> Option<Vec<u8>>;
+    fn get_mute_packet(&self) -> Option<Vec<u8>>;
+    fn set_mute_packet(&self, mute: bool) -> Option<Vec<u8>>;
+    fn get_mic_connected_packet(&self) -> Option<Vec<u8>>;
+    fn get_pairing_info_packet(&self) -> Option<Vec<u8>>;
+    fn get_product_color_packet(&self) -> Option<Vec<u8>>;
+    fn get_side_tone_packet(&self) -> Option<Vec<u8>>;
+    fn set_side_tone_packet(&self, side_tone_on: bool) -> Option<Vec<u8>>;
+    fn get_side_tone_volume_packet(&self) -> Option<Vec<u8>>;
+    fn set_side_tone_volume_packet(&self) -> Option<Vec<u8>>;
+    fn get_voice_prompt_packet(&self) -> Option<Vec<u8>>;
+    fn set_voice_prompt_packet(&self, enable: bool) -> Option<Vec<u8>>;
+    fn get_wireless_connected_status_packet(&self) -> Option<Vec<u8>>;
     fn get_event_from_device_response(&self, response: &[u8]) -> Option<DeviceEvent>;
     fn get_device_state(&mut self) -> &mut DeviceState;
 
@@ -253,21 +253,23 @@ pub trait Device {
             self.get_mute_packet(),
             self.get_mic_connected_packet(),
             self.get_pairing_info_packet(),
-            // self.get_product_color_packet(),
+            self.get_product_color_packet(),
             self.get_side_tone_packet(),
             self.get_side_tone_volume_packet(),
-            // self.get_voice_prompt_packet(),
+            self.get_voice_prompt_packet(),
         ];
 
         let mut responded = false;
         for packet in packets {
-            self.get_device_state().hid_device.write(&packet)?;
-            if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
-                self.get_device_state().update_self_with_event(&event);
-                responded = true;
-            }
-            if !self.get_device_state().connected.map_or(true, |c| c) {
-                break;
+            if let Some(packet) = packet {
+                self.get_device_state().hid_device.write(&packet)?;
+                if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
+                    self.get_device_state().update_self_with_event(&event);
+                    responded = true;
+                }
+                if !self.get_device_state().connected.map_or(true, |c| c) {
+                    break;
+                }
             }
         }
 
