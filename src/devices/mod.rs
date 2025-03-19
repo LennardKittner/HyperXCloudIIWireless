@@ -246,6 +246,7 @@ pub trait Device {
 
     fn refresh_state(&mut self) -> Result<(), DeviceError> {
         let packets = vec![
+            self.get_wireless_connected_status_packet(),
             self.get_charging_packet(),
             self.get_battery_packet(),
             self.get_automatic_shut_down_packet(),
@@ -256,15 +257,18 @@ pub trait Device {
             self.get_side_tone_packet(),
             self.get_side_tone_volume_packet(),
             // self.get_voice_prompt_packet(),
-            self.get_wireless_connected_status_packet(),
         ];
 
         let mut responded = false;
         for packet in packets {
+            self.get_device_state().connected = None;
             self.get_device_state().hid_device.write(&packet)?;
             if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
                 self.get_device_state().update_self_with_event(&event);
                 responded = true;
+            }
+            if !self.get_device_state().connected.map_or(true, |c| c) {
+                break;
             }
         }
 
