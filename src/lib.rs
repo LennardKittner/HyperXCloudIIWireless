@@ -3,6 +3,8 @@ use std::time::Duration;
 use hidapi::{HidApi, HidDevice, HidError};
 use thistermination::TerminationFull;
 
+mod devices;
+
 // Possible vendor IDs [hyperx , HP]
 const VENDOR_IDS: [u16; 2] = [0x0951, 0x03F0];
 // Possible Cloud II Wireless product IDs
