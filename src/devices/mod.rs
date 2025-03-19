@@ -28,11 +28,11 @@ impl Display for DeviceState {
         write!(
             f,
             "
-            Battery level:            {}%
+            Battery level:            {}
             Carging status:           {}
             Muted:                    {}
             Mic connected:            {}
-            Automatic shutdown after: {}min
+            Automatic shutdown after: {}
             Pairing info:             {}
             Product color:            {}
             Side tone on:             {}
@@ -41,13 +41,13 @@ impl Display for DeviceState {
             Connected:                {}
         ",
             self.battery_level
-                .map_or(unknown.clone(), |l| l.to_string()),
+                .map_or(unknown.clone(), |l| format!("{l}%")),
             self.charging.map_or(unknown.clone(), |c| c.to_string()),
             self.muted.map_or(unknown.clone(), |m| m.to_string()),
             self.mic_connected
                 .map_or(unknown.clone(), |m| m.to_string()),
             self.automatic_shutdown_after
-                .map_or(unknown.clone(), |a| (a.as_secs() / 60).to_string()),
+                .map_or(unknown.clone(), |a| format!("{} min", (a.as_secs() / 60))),
             self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
             self.product_color
                 .map_or(unknown.clone(), |c| c.to_string()),
@@ -261,7 +261,6 @@ pub trait Device {
 
         let mut responded = false;
         for packet in packets {
-            self.get_device_state().connected = None;
             self.get_device_state().hid_device.write(&packet)?;
             if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
                 self.get_device_state().update_self_with_event(&event);
