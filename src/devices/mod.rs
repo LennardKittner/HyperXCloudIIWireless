@@ -259,16 +259,14 @@ pub trait Device {
         ];
 
         let mut responded = false;
-        for packet in packets {
-            if let Some(packet) = packet {
-                self.get_device_state().hid_device.write(&packet)?;
-                if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
-                    self.get_device_state_mut().update_self_with_event(&event);
-                    responded = true;
-                }
-                if !self.get_device_state().connected.map_or(true, |c| c) {
-                    break;
-                }
+        for packet in packets.into_iter().flatten() {
+            self.get_device_state().hid_device.write(&packet)?;
+            if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
+                self.get_device_state_mut().update_self_with_event(&event);
+                responded = true;
+            }
+            if !self.get_device_state().connected.map_or(true, |c| c) {
+                break;
             }
         }
 
