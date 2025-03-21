@@ -5,10 +5,9 @@ use std::{fmt::Display, time::Duration};
 use thistermination::TerminationFull;
 
 //TODO: connect to rest of code base
-
 #[derive(Debug)]
 pub struct DeviceState {
-    hid_device: HidDevice,
+    pub hid_device: HidDevice,
     pub battery_level: Option<u8>,
     pub charging: Option<ChargingStatus>,
     pub muted: Option<bool>,
@@ -222,13 +221,13 @@ pub trait Device {
     fn get_side_tone_packet(&self) -> Option<Vec<u8>>;
     fn set_side_tone_packet(&self, side_tone_on: bool) -> Option<Vec<u8>>;
     fn get_side_tone_volume_packet(&self) -> Option<Vec<u8>>;
-    fn set_side_tone_volume_packet(&self) -> Option<Vec<u8>>;
+    fn set_side_tone_volume_packet(&self, volume: u8) -> Option<Vec<u8>>;
     fn get_voice_prompt_packet(&self) -> Option<Vec<u8>>;
     fn set_voice_prompt_packet(&self, enable: bool) -> Option<Vec<u8>>;
     fn get_wireless_connected_status_packet(&self) -> Option<Vec<u8>>;
     fn get_event_from_device_response(&self, response: &[u8]) -> Option<DeviceEvent>;
-    fn get_device_state(&mut self) -> &mut DeviceState;
-
+    fn get_device_state(&self) -> &DeviceState;
+    fn get_device_state_mut(&mut self) -> &mut DeviceState;
     fn wait_for_updates(&mut self, duration: Duration) -> Option<DeviceEvent> {
         let mut buf = [0u8; 8];
         let res = self
@@ -264,7 +263,7 @@ pub trait Device {
             if let Some(packet) = packet {
                 self.get_device_state().hid_device.write(&packet)?;
                 if let Some(event) = self.wait_for_updates(Duration::from_secs(1)) {
-                    self.get_device_state().update_self_with_event(&event);
+                    self.get_device_state_mut().update_self_with_event(&event);
                     responded = true;
                 }
                 if !self.get_device_state().connected.map_or(true, |c| c) {
