@@ -12,6 +12,7 @@ const BASE_PACKET: [u8; 20] = {
     packet
 };
 
+#[allow(dead_code)]
 const BASE_PACKET2: [u8; 20] = {
     let mut packet = [0; 20];
     (packet[0], packet[1]) = (33, 187);
@@ -32,6 +33,7 @@ const SET_SIDE_TONE_ON_CMD_ID: u8 = 33;
 const GET_SIDE_TONE_VOLUME_CMD_ID: u8 = 11;
 const SET_SIDE_TONE_VOLUME_CMD_ID: u8 = 35;
 const GET_VOICE_PROMPT_CMD_ID: u8 = 9;
+#[allow(dead_code)]
 const SET_VOICE_PROMPT_CMD_ID: u8 = 19;
 const GET_WIRELESS_STATUS_CMD_ID: u8 = 1;
 
@@ -128,9 +130,10 @@ impl Device for CloudIIWirelessDTS {
         Some(tmp)
     }
 
-    fn set_side_tone_volume_packet(&self) -> Option<Vec<u8>> {
+    fn set_side_tone_volume_packet(&self, volume: u8) -> Option<Vec<u8>> {
         let mut tmp = BASE_PACKET.to_vec();
         tmp[3] = SET_SIDE_TONE_VOLUME_CMD_ID;
+        tmp[4] = volume;
         Some(tmp)
     }
 
@@ -142,10 +145,12 @@ impl Device for CloudIIWirelessDTS {
         None
     }
 
-    fn set_voice_prompt_packet(&self, enable: bool) -> Option<Vec<u8>> {
-        let mut tmp = BASE_PACKET2.to_vec();
-        tmp[2] = SET_VOICE_PROMPT_CMD_ID;
-        Some(tmp)
+    fn set_voice_prompt_packet(&self, _enable: bool) -> Option<Vec<u8>> {
+        // let mut tmp = BASE_PACKET2.to_vec();
+        // tmp[2] = SET_VOICE_PROMPT_CMD_ID;
+        // Some(tmp)
+        // Doesn't work
+        None
     }
 
     fn get_wireless_connected_status_packet(&self) -> Option<Vec<u8>> {
@@ -155,6 +160,9 @@ impl Device for CloudIIWirelessDTS {
     }
 
     fn get_event_from_device_response(&self, response: &[u8]) -> Option<DeviceEvent> {
+        if response.len() < 7 {
+            return None;
+        }
         match (response[2], response[3], response[4], response[7]) {
             (_, GET_CHARGING_CMD_ID, status, _) => {
                 Some(DeviceEvent::Charging(ChargingStatus::from(status)))
@@ -183,8 +191,11 @@ impl Device for CloudIIWirelessDTS {
         }
     }
 
-    fn get_device_state(&mut self) -> &mut DeviceState {
+    fn get_device_state(&self) -> &DeviceState {
+        &self.state
+    }
+
+    fn get_device_state_mut(&mut self) -> &mut DeviceState {
         &mut self.state
     }
 }
-
