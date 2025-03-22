@@ -5,6 +5,8 @@ pub struct TrayHandler {
     handle: Handle<StatusTray>,
 }
 
+const NO_COMPATIBLE_DEVICE: &str = "No compatible device found.\nIs the dongle plugged in?\nIf you are using Linux did you add the Udev rules?";
+
 impl TrayHandler {
     pub fn new(tray: StatusTray) -> Self {
         let tray_service = TrayService::new(tray);
@@ -14,12 +16,14 @@ impl TrayHandler {
     }
 
     pub fn update(&self, device_state: &DeviceState) {
-        let message = if device_state.connected.unwrap_or(false) {
-            Some(device_state.to_string())
-        } else {
-            None
+        let (message, name) = match device_state.connected {
+            None => (NO_COMPATIBLE_DEVICE.to_string(), None),
+            Some(false) => (
+                "Headset is not connected".to_string(),
+                device_state.device_name.clone(),
+            ),
+            Some(true) => (device_state.to_string(), device_state.device_name.clone()),
         };
-        let name = device_state.device_name.clone();
         self.handle.update(|tray| {
             tray.message = message;
             tray.device_name = name;
@@ -29,14 +33,14 @@ impl TrayHandler {
 
 pub struct StatusTray {
     device_name: Option<String>,
-    message: Option<String>,
+    message: String,
 }
 
 impl StatusTray {
     pub fn new() -> Self {
         StatusTray {
             device_name: None,
-            message: None,
+            message: NO_COMPATIBLE_DEVICE.to_string(),
         }
     }
 }
@@ -49,28 +53,16 @@ impl Tray for StatusTray {
         "audio-headset".into()
     }
     fn tool_tip(&self) -> ToolTip {
-        println!("tool_tip");
-        let description = if let Some(message) = self.message.clone() {
-            message
-        } else {
-            "Headset is not connected".to_string()
-        };
         ToolTip {
             title: self.device_name.clone().unwrap_or("Unknown".to_string()),
-            description,
+            description: self.message.clone(),
             icon_name: "audio-headset".into(),
             icon_pixmap: Vec::new(),
         }
     }
     fn menu(&self) -> Vec<MenuItem<Self>> {
-        println!("menu");
-        let message = if let Some(message) = &self.message {
-            message
-        } else {
-            &"Headset is not connected".to_string()
-        };
-
-        let mut state_items: Vec<MenuItem<Self>> = message
+        let mut state_items: Vec<MenuItem<Self>> = self
+            .message
             .lines()
             .map(|line| {
                 StandardItem {
