@@ -26,6 +26,7 @@ pub fn connect_compatible_device() -> Result<Box<dyn Device>, DeviceError> {
 #[derive(Debug)]
 pub struct DeviceState {
     pub hid_device: HidDevice,
+    pub device_name: Option<String>,
     pub battery_level: Option<u8>,
     pub charging: Option<ChargingStatus>,
     pub muted: Option<bool>,
@@ -44,19 +45,17 @@ impl Display for DeviceState {
         let unknown = "Unknown".to_string();
         write!(
             f,
-            "
-            Battery level:            {}
-            Carging status:           {}
-            Muted:                    {}
-            Mic connected:            {}
-            Automatic shutdown after: {}
-            Pairing info:             {}
-            Product color:            {}
-            Side tone on:             {}
-            Side tone volume:         {}
-            Voice prompt on:          {}
-            Connected:                {}
-        ",
+            "Battery level: {}
+Carging status: {}
+Muted: {}
+Mic connected: {}
+Automatic shutdown after: {}
+Pairing info: {}
+Product color: {}
+Side tone on: {}
+Side tone volume: {}
+Voice prompt on: {}
+Connected: {}",
             self.battery_level
                 .map_or(unknown.clone(), |l| format!("{l}%")),
             self.charging.map_or(unknown.clone(), |c| c.to_string()),
@@ -93,8 +92,10 @@ impl DeviceState {
                 }
             })
             .ok_or(DeviceError::NoDeviceFound())??;
+        let device_name = hid_device.get_product_string()?;
         Ok(DeviceState {
             hid_device,
+            device_name,
             charging: None,
             battery_level: None,
             muted: None,
@@ -107,6 +108,40 @@ impl DeviceState {
             voice_prompt_on: None,
             connected: None,
         })
+    }
+
+    pub fn to_better_string(&self) -> String {
+        let unknown = "Unknown".to_string();
+        format!(
+            "Battery level:            {}
+Carging status:           {}
+Muted:                    {}
+Mic connected:            {}
+Automatic shutdown after: {}
+Pairing info:             {}
+Product color:            {}
+Side tone on:             {}
+Side tone volume:         {}
+Voice prompt on:          {}
+Connected:                {}",
+            self.battery_level
+                .map_or(unknown.clone(), |l| format!("{l}%")),
+            self.charging.map_or(unknown.clone(), |c| c.to_string()),
+            self.muted.map_or(unknown.clone(), |m| m.to_string()),
+            self.mic_connected
+                .map_or(unknown.clone(), |m| m.to_string()),
+            self.automatic_shutdown_after
+                .map_or(unknown.clone(), |a| format!("{} min", (a.as_secs() / 60))),
+            self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
+            self.product_color
+                .map_or(unknown.clone(), |c| c.to_string()),
+            self.side_tone_on.map_or(unknown.clone(), |s| s.to_string()),
+            self.side_tone_volume
+                .map_or(unknown.clone(), |s| s.to_string()),
+            self.voice_prompt_on
+                .map_or(unknown.clone(), |v| v.to_string()),
+            self.connected.map_or(unknown.clone(), |c| c.to_string()),
+        )
     }
 
     fn update_self_with_event(&mut self, event: &DeviceEvent) {
