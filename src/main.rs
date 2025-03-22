@@ -1,8 +1,8 @@
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
-mod battery_tray;
-use battery_tray::{BatteryTray, TrayHandler};
+mod status_tray;
+use status_tray::{StatusTray, TrayHandler};
 use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, Device, DeviceError};
 
 fn handle_error(error: DeviceError) -> String {
@@ -32,7 +32,7 @@ fn main() {
         std::thread::sleep(Duration::from_secs(1));
     };
 
-    let tray_handler = TrayHandler::new(BatteryTray::new());
+    let tray_handler = TrayHandler::new(StatusTray::new());
 
     // Run loop
     loop {

@@ -3,11 +3,11 @@ use ksni::{menu::StandardItem, Handle, MenuItem, ToolTip, Tray, TrayService};
 use std::sync::{Arc, RwLock, RwLockReadGuard};
 
 pub struct TrayHandler {
-    handle: Handle<BatteryTray>,
+    handle: Handle<StatusTray>,
 }
 
 impl TrayHandler {
-    pub fn new(tray: BatteryTray) -> Self {
+    pub fn new(tray: StatusTray) -> Self {
         let tray_service = TrayService::new(tray);
         let handle = tray_service.handle();
         tray_service.spawn();
@@ -28,21 +28,21 @@ impl TrayHandler {
     }
 }
 
-pub struct BatteryTray {
+pub struct StatusTray {
     device_name: Option<String>,
     message: Option<String>,
 }
 
-impl BatteryTray {
+impl StatusTray {
     pub fn new() -> Self {
-        BatteryTray {
+        StatusTray {
             device_name: None,
             message: None,
         }
     }
 }
 
-impl Tray for BatteryTray {
+impl Tray for StatusTray {
     fn id(&self) -> String {
         env!("CARGO_PKG_NAME").into()
     }
