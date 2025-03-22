@@ -43,36 +43,36 @@ pub struct DeviceState {
 impl Display for DeviceState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let unknown = "Unknown".to_string();
-        write!(
-            f,
-            "Battery level: {}
-Carging status: {}
-Muted: {}
-Mic connected: {}
+        write!(f, "Name:                     {}
+Battery level:            {}
+Charging status:           {}
+Muted:                    {}
+Mic connected:            {}
 Automatic shutdown after: {}
-Pairing info: {}
-Product color: {}
-Side tone on: {}
-Side tone volume: {}
-Voice prompt on: {}
-Connected: {}",
-            self.battery_level
-                .map_or(unknown.clone(), |l| format!("{l}%")),
-            self.charging.map_or(unknown.clone(), |c| c.to_string()),
-            self.muted.map_or(unknown.clone(), |m| m.to_string()),
-            self.mic_connected
-                .map_or(unknown.clone(), |m| m.to_string()),
-            self.automatic_shutdown_after
-                .map_or(unknown.clone(), |a| format!("{} min", (a.as_secs() / 60))),
-            self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
-            self.product_color
-                .map_or(unknown.clone(), |c| c.to_string()),
-            self.side_tone_on.map_or(unknown.clone(), |s| s.to_string()),
-            self.side_tone_volume
-                .map_or(unknown.clone(), |s| s.to_string()),
-            self.voice_prompt_on
-                .map_or(unknown.clone(), |v| v.to_string()),
-            self.connected.map_or(unknown.clone(), |c| c.to_string()),
+Pairing info:             {}
+Product color:            {}
+Side tone on:             {}
+Side tone volume:         {}
+Voice prompt on:          {}
+Connected:                {}",
+           self.device_name.clone().unwrap_or("Unknown".to_string()),
+           self.battery_level
+               .map_or(unknown.clone(), |l| format!("{l}%")),
+           self.charging.map_or(unknown.clone(), |c| c.to_string()),
+           self.muted.map_or(unknown.clone(), |m| m.to_string()),
+           self.mic_connected
+               .map_or(unknown.clone(), |m| m.to_string()),
+           self.automatic_shutdown_after
+               .map_or(unknown.clone(), |a| format!("{} min", a.as_secs() / 60)),
+           self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
+           self.product_color
+               .map_or(unknown.clone(), |c| c.to_string()),
+           self.side_tone_on.map_or(unknown.clone(), |s| s.to_string()),
+           self.side_tone_volume
+               .map_or(unknown.clone(), |s| s.to_string()),
+           self.voice_prompt_on
+               .map_or(unknown.clone(), |v| v.to_string()),
+           self.connected.map_or(unknown.clone(), |c| c.to_string()),
         )
     }
 }
@@ -110,20 +110,19 @@ impl DeviceState {
         })
     }
 
-    pub fn to_better_string(&self) -> String {
+    pub fn to_string_no_padding(&self) -> String {
         let unknown = "Unknown".to_string();
-        format!(
-            "Battery level:            {}
-Carging status:           {}
-Muted:                    {}
-Mic connected:            {}
+        format!("Battery level: {}
+Charging status: {}
+Muted: {}
+Mic connected: {}
 Automatic shutdown after: {}
-Pairing info:             {}
-Product color:            {}
-Side tone on:             {}
-Side tone volume:         {}
-Voice prompt on:          {}
-Connected:                {}",
+Pairing info: {}
+Product color: {}
+Side tone on: {}
+Side tone volume: {}
+Voice prompt on: {}
+Connected: {}",
             self.battery_level
                 .map_or(unknown.clone(), |l| format!("{l}%")),
             self.charging.map_or(unknown.clone(), |c| c.to_string()),
@@ -131,7 +130,7 @@ Connected:                {}",
             self.mic_connected
                 .map_or(unknown.clone(), |m| m.to_string()),
             self.automatic_shutdown_after
-                .map_or(unknown.clone(), |a| format!("{} min", (a.as_secs() / 60))),
+                .map_or(unknown.clone(), |a| format!("{} min", a.as_secs() / 60)),
             self.pairing_info.map_or(unknown.clone(), |p| p.to_string()),
             self.product_color
                 .map_or(unknown.clone(), |c| c.to_string()),

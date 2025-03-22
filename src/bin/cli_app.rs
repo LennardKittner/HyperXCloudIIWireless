@@ -115,8 +115,8 @@ fn main() {
         std::process::exit(1);
     };
     println!(
-        "Device State: \n{}",
-        device.get_device_state().to_better_string()
+        "{}",
+        device.get_device_state()
     );
 }
 

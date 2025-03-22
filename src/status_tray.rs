@@ -22,7 +22,7 @@ impl TrayHandler {
                 "Headset is not connected".to_string(),
                 device_state.device_name.clone(),
             ),
-            Some(true) => (device_state.to_string(), device_state.device_name.clone()),
+            Some(true) => (device_state.to_string_no_padding(), device_state.device_name.clone()),
         };
         self.handle.update(|tray| {
             tray.message = message;
@@ -53,9 +53,10 @@ impl Tray for StatusTray {
         "audio-headset".into()
     }
     fn tool_tip(&self) -> ToolTip {
+        let description = self.message.clone().lines().filter(|l| !l.contains("Unknown")).collect::<Vec<&str>>().join("\n");
         ToolTip {
             title: self.device_name.clone().unwrap_or("Unknown".to_string()),
-            description: self.message.clone(),
+            description,
             icon_name: "audio-headset".into(),
             icon_pixmap: Vec::new(),
         }
