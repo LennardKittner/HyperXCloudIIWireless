@@ -1,78 +1,48 @@
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
-use hyper_x_cloud_ii_wireless::{Device, DeviceError};
 mod battery_tray;
-use battery_tray::{TrayHandler, BatteryTray};
+use battery_tray::{BatteryTray, TrayHandler};
+use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, Device, DeviceError};
 
-fn pair_device() -> Device {
-    loop {
-        match Device::new() {
-            Ok(device) => break device,
-            Err(error) => {
-                eprintln!("{error}");
-            }
-        };
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
-}
-
-fn handle_error(error: DeviceError, device: &mut Device, tray_handler: &mut TrayHandler) {
+fn handle_error(error: DeviceError) -> String {
     match error {
         DeviceError::HidError(hidapi::HidError::HidApiError { message }) => {
             if message == "No such device" {
                 eprintln!("No device found.");
-                tray_handler.set_status("No device found.");
-                *device = pair_device();
+                "No such device".to_string()
             } else {
                 eprintln!("{message}");
+                message
             }
-        }
-        DeviceError::NoDeviceFound() => {
-            eprintln!("{}", DeviceError::NoDeviceFound());
-            device.clear_state();
-            tray_handler.update(device);
-            tray_handler.set_status( &DeviceError::NoDeviceFound().to_string());
-        }
-        DeviceError::HeadSetOff() => {
-            eprintln!("{}", DeviceError::HeadSetOff());
-            device.clear_state();
-            tray_handler.update(device);
-            tray_handler.set_status(&DeviceError::HeadSetOff().to_string());
         }
         error => {
             eprintln!("{error}");
+            error.to_string()
         }
     }
 }
 
 fn main() {
-    let mut tray_handler = TrayHandler::new(BatteryTray::new());
-    let mut device = pair_device();
-    tray_handler.update(&device);
+    let mut device = loop {
+        match connect_compatible_device() {
+            Ok(d) => break d,
+            Err(e) => println!("Connecting failed with error: {e}"),
+        }
+        std::thread::sleep(Duration::from_secs(1));
+    };
+
+    let tray_handler = TrayHandler::new(BatteryTray::new());
 
     // Run loop
     loop {
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        match device.update_battery_level() {
-            Ok(_) => {
-                tray_handler.clear_status();
-                tray_handler.update(&device);
-            },
+        std::thread::sleep(Duration::from_secs(1));
+        match device.refresh_state() {
+            Ok(()) => (),
             Err(error) => {
-                handle_error(error, &mut device, &mut tray_handler);
-                continue;
-            },
-        };
-        match device.wait_for_updates(Duration::from_secs(60)) {
-            Ok(_) => {
-                tray_handler.clear_status();
-                tray_handler.update(&device)
-            },
-            Err(DeviceError::NoResponse()) => (),
-            Err(error) => {
-                handle_error(error, &mut device, &mut tray_handler);
-                continue;
+                eprintln!("{}", error);
             }
-        }
+        };
+        tray_handler.update(device.get_device_state())
     }
 }
