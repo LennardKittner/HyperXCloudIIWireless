@@ -1,9 +1,8 @@
-use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 mod status_tray;
 use status_tray::{StatusTray, TrayHandler};
-use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, Device, DeviceError};
+use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, DeviceError};
 
 fn handle_error(error: DeviceError) -> String {
     match error {
@@ -23,6 +22,7 @@ fn handle_error(error: DeviceError) -> String {
     }
 }
 
+//TODO: error handling e.g. reconnect on "no such device" error
 fn main() {
     let mut device = loop {
         match connect_compatible_device() {

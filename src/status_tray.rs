@@ -1,6 +1,5 @@
-use hyper_x_cloud_ii_wireless::devices::{Device, DeviceState};
+use hyper_x_cloud_ii_wireless::devices::DeviceState;
 use ksni::{menu::StandardItem, Handle, MenuItem, ToolTip, Tray, TrayService};
-use std::sync::{Arc, RwLock, RwLockReadGuard};
 
 pub struct TrayHandler {
     handle: Handle<StatusTray>,

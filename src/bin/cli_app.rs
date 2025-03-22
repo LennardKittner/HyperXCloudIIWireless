@@ -3,7 +3,6 @@ use std::time::Duration;
 use clap::{Arg, Command};
 use hyper_x_cloud_ii_wireless::devices::{cloud_ii_wireless_dts::CloudIIWirelessDTS, Device};
 
-//TODO: error handling e.g. reconnect on "no such device" error
 fn main() {
     let matches = Command::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
