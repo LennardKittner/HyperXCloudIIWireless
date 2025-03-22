@@ -1,10 +1,28 @@
 pub mod cloud_ii_wireless_dts;
 
+use crate::devices::cloud_ii_wireless_dts::CloudIIWirelessDTS;
 use hidapi::{HidApi, HidDevice, HidError};
 use std::{fmt::Display, time::Duration};
 use thistermination::TerminationFull;
 
-//TODO: connect to rest of code base
+// Possible vendor IDs [HP]
+const VENDOR_IDS: [u16; 1] = [0x03F0];
+// Possible Cloud II Wireless product IDs
+const PRODUCT_IDS: [u16; 4] = [0x1718, 0x018B, 0x0D93, 0x0696];
+
+pub fn connect_compatible_device() -> Result<Box<dyn Device>, DeviceError> {
+    let state = DeviceState::new(&PRODUCT_IDS, &VENDOR_IDS)?;
+    let name = state
+        .hid_device
+        .get_product_string()?
+        .ok_or(DeviceError::NoDeviceFound())?;
+    println!("Connecting to {}", name);
+    match name.as_str() {
+        "HyperX Cloud II Wireless" => Ok(Box::new(CloudIIWirelessDTS::new_from_state(state))),
+        _ => Err(DeviceError::NoDeviceFound()),
+    }
+}
+
 #[derive(Debug)]
 pub struct DeviceState {
     pub hid_device: HidDevice,
