@@ -115,6 +115,7 @@ You can also exit via the right-clock menu.
 
 - [ ] Menu bar app for MacOS.
 - [ ] Windows support
+- [ ] Update ksni
 - [x] Actively configure the headset.
 - [x] Query device state instead of only relying on events.
 
