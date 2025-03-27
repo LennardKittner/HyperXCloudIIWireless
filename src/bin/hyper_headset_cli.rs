@@ -7,7 +7,7 @@ fn main() {
     let matches = Command::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .about("A CLI application for monitoring and managing HyperX headsets.")
         .arg(
             Arg::new("automatic_shutdown")
                 .long("automatic_shutdown")

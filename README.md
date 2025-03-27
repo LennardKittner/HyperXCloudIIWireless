@@ -84,7 +84,7 @@ You can also download a compiled version from [releases](https://github.com/Lenn
 
 ```
 hyper_headset_cli --help
-A CLI and tray application for monitoring and managing HyperX headsets.
+A CLI application for monitoring and managing HyperX headsets.
 
 Usage: hyper_headset_cli [OPTIONS]
 
@@ -107,7 +107,19 @@ Options:
 ```
 `hyper_headset_cli` without any arguments will print all available headset information.
 
-`hyper_headset` without any arguments will start the tray application. 
+```
+hyper_headset  --help
+A CLI tray application for monitoring HyperX headsets.
+
+Usage: hyper_headset [OPTIONS]
+
+Options:
+      --refresh_interval <refresh_interval>  Set the refresh interval (in seconds)
+  -h, --help                                 Print help
+  -V, --version                              Print version
+```
+
+`hyper_headset` without any arguments will start the tray application with a 3s refresh interval.
 Once it's open, hover over the headset icon in the system tray or right-click to view details such as the battery level. 
 You can also exit via the right-clock menu.
 
