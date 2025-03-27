@@ -70,8 +70,8 @@ Once created, replug the wireless dongle.
 
 ## Building
 
-To only build the cli_app on MacOS, use:
-`cargo build --release --bin cli_app`
+To only build the CLI app on MacOS, use:
+`cargo build --release --bin hyper_headset_cli`
 
 To build both applications on Linux, use:
 `cargo build --release`
