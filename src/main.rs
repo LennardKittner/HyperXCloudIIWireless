@@ -4,24 +4,6 @@ mod status_tray;
 use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, DeviceError};
 use status_tray::{StatusTray, TrayHandler};
 
-fn handle_error(error: DeviceError) -> String {
-    match error {
-        DeviceError::HidError(hidapi::HidError::HidApiError { message }) => {
-            if message == "No such device" {
-                eprintln!("No device found.");
-                "No such device".to_string()
-            } else {
-                eprintln!("{message}");
-                message
-            }
-        }
-        error => {
-            eprintln!("{error}");
-            error.to_string()
-        }
-    }
-}
-
 fn main() {
     let tray_handler = TrayHandler::new(StatusTray::new());
     loop {
