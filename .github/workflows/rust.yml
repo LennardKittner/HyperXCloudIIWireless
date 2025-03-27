@@ -15,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        run: cargo build --verbose --bin cli_app
+        run: cargo build --verbose --bin hyper_headset_cli
       - name: test
-        run:  cargo test --bin cli_app
+        run:  cargo test --bin hyper_headset_cli
 
   build-linux:
     runs-on: ubuntu-latest
