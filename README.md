@@ -1,16 +1,20 @@
 # HyperXCloudIIWireless
-A CLI and tray application to monitor HyperX Cloud II Wireless headset battery level.
+A CLI and tray application for monitoring and managing HyperX headsets.
 
 <img src=./screenshots/tray_app.png alt="tray_app" width="400">
+
+This project is not affiliated with, endorsed by, or associated with HyperX or its parent company in any way. All trademarks and brand names belong to their respective owners.
 
 ## Compatibility
 The CLI application is compatible with both Linux and MacOS operating systems. 
 However, the tray application is only functional on Linux. 
-Although it was only tested on Manjaro/KDE, it should also work on other distribution and desktop environments.
+Although it was only tested on Manjaro and Kubuntu with KDE, it should also work on other distribution and desktop environments.
 
-Currently, only the HyperX Cloud II Wireless and HyperX Cloud Stinger 2 Wireless.
-However, the HyperX Cloud II Wireless comes in two versions: one produced before HP acquired HyperX and one after.
+Currently, only the HyperX Cloud II Wireless and HyperX Cloud Stinger 2 Wireless are supported.
+Please note that the HyperX Cloud II Wireless comes in two versions: one produced before HP acquired HyperX and one after.
 The application has only been tested on the HyperX Cloud II Wireless with the HP vendorID.
+
+It should be possible to add support for other HyperX headsets.
 
 ## Prerequisites
 
@@ -78,19 +82,44 @@ You can also download a compiled version from [releases](https://github.com/Lenn
 
 ## Usage
 
-`cli_app` without any arguments will print the current battery level.
+```
+cli_app --help
+Usage: cli_app [OPTIONS]
 
-`hyper_x_cloud_ii_wireless` without any arguments will start the tray application. Once it's open, hover over the headset icon in the system tray to view details like the battery level. To exit, right-click on the icon.
+Options:
+      --automatic_shutdown <automatic_shutdown>
+          Set the delay in minutes after which the headset will automatically shutdown.
+          0 will disable automatic shutdown.
+      --mute <mute>
+          Mute or un mute the headset. [possible values: true, false]
+      --enable_side_tone <enable_side_tone>
+          Enable or disable side tone. [possible values: true, false]
+      --side_tone_volume <side_tone_volume>
+          Set the side tone volume.
+      --enable_voice_prompt <enable_voice_prompt>
+          Enable voice prompt. This may not be supported on your device. [possible values: true, false]
+  -h, --help
+          Print help
+  -V, --version
+          Print version
+```
+`cli_app` without any arguments will print all available headset information.
 
-## Limitations
-The battery level is checked regularly, but information about muting or charging the headset is only recorded when those events occur.
+`hyper_x_cloud_ii_wireless` without any arguments will start the tray application. 
+Once it's open, hover over the headset icon in the system tray or right-click to view details such as the battery level. 
+You can also exit via the right-clock menu.
 
 ## Contributing / TODOs
-- [ ] Menu bar app for MacOS.
-- [ ] Actively configure the headset.
-- [ ] Query device state instead of only relying on events.
 
-You can contribute code or monitor packets using Wireshark from the HyperX app on Windows.
+- [ ] Menu bar app for MacOS.
+- [ ] Windows support
+- [x] Actively configure the headset.
+- [x] Query device state instead of only relying on events.
+
+You can contribute code or monitor packets using Wireshark or dnSpy from the HyperX app on Windows.
+
+Reverse engineering proprietary software may be restricted by its license agreement.
+Ensure you comply with relevant laws and regulations.
 
 ### How to use Wireshark to capture packets
 
