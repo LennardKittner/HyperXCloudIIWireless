@@ -26,6 +26,8 @@ pub fn connect_compatible_device() -> Result<Box<dyn Device>, DeviceError> {
 #[derive(Debug)]
 pub struct DeviceState {
     pub hid_device: HidDevice,
+    pub product_id: u16,
+    pub vendor_id: u16,
     pub device_name: Option<String>,
     pub battery_level: Option<u8>,
     pub charging: Option<ChargingStatus>,
@@ -80,21 +82,24 @@ Connected:                {}",
 impl DeviceState {
     pub fn new(product_ids: &[u16], vendor_ids: &[u16]) -> Result<Self, DeviceError> {
         let hid_api = HidApi::new()?;
-        let hid_device = hid_api
+        let (hid_device, product_id, vendor_id) = hid_api
             .device_list()
             .find_map(|info| {
                 if product_ids.contains(&info.product_id())
                     && vendor_ids.contains(&info.vendor_id())
                 {
-                    Some(hid_api.open(info.vendor_id(), info.product_id()))
+                    Some((hid_api.open(info.vendor_id(), info.product_id()), info.product_id(), info.vendor_id()))
                 } else {
                     None
                 }
             })
-            .ok_or(DeviceError::NoDeviceFound())??;
+            .ok_or(DeviceError::NoDeviceFound())?;
+        let hid_device = hid_device?;
         let device_name = hid_device.get_product_string()?;
         Ok(DeviceState {
             hid_device,
+            product_id,
+            vendor_id,
             device_name,
             charging: None,
             battery_level: None,
