@@ -52,7 +52,7 @@ MacOS:
 
 ### Udev (Linux only)
 
-Create a new file in /etc/udev/rules.d/99-hyperx-cloud-II.rules with the following content inside:
+Create a new file in `/etc/udev/rules.d/99-HyperHeadset.rules` with the following content inside:
 
 ```
 SUBSYSTEMS=="usb", ATTRS{idProduct}=="018b", ATTRS{idVendor}=="03f0", MODE="0666"
