@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 mod status_tray;
-use hyper_x_cloud_ii_wireless::devices::{connect_compatible_device, DeviceError};
+use hyper_headset::devices::connect_compatible_device;
 use status_tray::{StatusTray, TrayHandler};
 
 fn main() {

@@ -1,4 +1,4 @@
-use hyper_x_cloud_ii_wireless::devices::DeviceState;
+use hyper_headset::devices::DeviceState;
 use ksni::{menu::StandardItem, Handle, MenuItem, ToolTip, Tray, TrayService};
 
 pub struct TrayHandler {

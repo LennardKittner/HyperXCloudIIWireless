@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use clap::{Arg, Command};
-use hyper_x_cloud_ii_wireless::devices::{cloud_ii_wireless_dts::CloudIIWirelessDTS, Device};
+use hyper_headset::devices::{cloud_ii_wireless_dts::CloudIIWirelessDTS, Device};
 
 fn main() {
     let matches = Command::new(env!("CARGO_PKG_NAME"))

@@ -1,4 +1,4 @@
-# HyperXCloudIIWireless
+# HyperHeadset
 A CLI and tray application for monitoring and managing HyperX headsets.
 
 <img src=./screenshots/tray_app.png alt="tray_app" width="400">
@@ -83,8 +83,10 @@ You can also download a compiled version from [releases](https://github.com/Lenn
 ## Usage
 
 ```
-cli_app --help
-Usage: cli_app [OPTIONS]
+hyper_headset_cli --help
+A CLI and tray application for monitoring and managing HyperX headsets.
+
+Usage: hyper_headset_cli [OPTIONS]
 
 Options:
       --automatic_shutdown <automatic_shutdown>
@@ -103,9 +105,9 @@ Options:
   -V, --version
           Print version
 ```
-`cli_app` without any arguments will print all available headset information.
+`hyper_headset_cli` without any arguments will print all available headset information.
 
-`hyper_x_cloud_ii_wireless` without any arguments will start the tray application. 
+`hyper_headset` without any arguments will start the tray application. 
 Once it's open, hover over the headset icon in the system tray or right-click to view details such as the battery level. 
 You can also exit via the right-clock menu.
 
