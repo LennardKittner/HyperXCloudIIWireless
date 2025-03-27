@@ -1,6 +1,6 @@
 [package]
 name = "hyper_x_cloud_ii_wireless"
-version = "1.0.1"
+version = "1.1.0"
 edition = "2021"
 authors = ["Lennard Kittner"]
 
