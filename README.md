@@ -76,7 +76,7 @@ To only build the cli_app on MacOS, use:
 To build both applications on Linux, use:
 `cargo build --release`
 
-You can also download a compiled version from [releases](https://github.com/LennardKittner/HyperXCloudIIWireless/releases).
+You can also download a compiled version from [releases](https://github.com/LennardKittner/HyperHeadset/releases).
 
 `cargo build --release` **will fail on MacOS** because cargo will try to build the tray application, but some dependencies are exclusive to Linux.
 
