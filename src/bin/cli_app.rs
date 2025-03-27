@@ -13,7 +13,7 @@ fn main() {
                 .long("automatic_shutdown")
                 .required(false)
                 .help(
-                    "Set the delay in minutes after which the headset will automatically shutdown.",
+                    "Set the delay in minutes after which the headset will automatically shutdown.\n0 will disable automatic shutdown.",
                 )
                 .value_parser(clap::value_parser!(u8)),
         )
