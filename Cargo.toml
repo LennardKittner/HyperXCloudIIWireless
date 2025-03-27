@@ -3,6 +3,7 @@ name = "hyper_x_cloud_ii_wireless"
 version = "1.1.0"
 edition = "2021"
 authors = ["Lennard Kittner"]
+description = "A CLI and tray application for monitoring and managing HyperX headsets."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
